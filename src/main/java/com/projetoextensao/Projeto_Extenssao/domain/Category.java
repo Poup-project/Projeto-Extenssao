@@ -1,6 +1,7 @@
 package com.projetoextensao.Projeto_Extenssao.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.projetoextensao.Projeto_Extenssao.dto.CategoryRequestDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -39,10 +40,9 @@ public class Category {
     @Column(name = "color_hex")
     private String colorHex;
 
-    @Setter
     @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonBackReference
+    @JsonBackReference(value = "client-category")
     private Client client;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)

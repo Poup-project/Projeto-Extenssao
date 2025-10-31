@@ -1,5 +1,6 @@
 package com.projetoextensao.Projeto_Extenssao.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.projetoextensao.Projeto_Extenssao.dto.ClientRequestDTO;
 import jakarta.persistence.*;
@@ -40,10 +41,10 @@ public class Client {
     private String password;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference(value = "client-category")
     private List<Category> categories = new ArrayList<>();
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference(value = "client-transaction")
     private List<Transaction> transactions = new ArrayList<>();
 }
