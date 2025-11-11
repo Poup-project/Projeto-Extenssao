@@ -65,11 +65,20 @@ public class ClientController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         String email = credentials.get("email");
-        String senha = credentials.get("senha");
+        String senha = credentials.get("password");
+
+        System.out.println("Tentando login com: " + email + " / " + senha);
 
         Client client = clientService.findByEmail(email);
 
-        if (client == null || !client.getPassword().equals(senha)) {
+        if (client == null) {
+            System.out.println("Nenhum client encontrado para o email " + email);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Email ou senha inválidos"));
+        }
+
+        if (!client.getPassword().equals(senha)) {
+            System.out.println("Senha incorreta para " + email);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Email ou senha inválidos"));
         }
