@@ -21,7 +21,4 @@ public class TransactionRequestDTO {
 
     @NotNull(message = "A categoria é obrigatória!")
     private UUID categoryId;
-
-    @NotNull(message = "O cliente é obrigatório!")
-    private UUID userId;
 }

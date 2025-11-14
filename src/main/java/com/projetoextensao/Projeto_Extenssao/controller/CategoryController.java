@@ -2,6 +2,8 @@ package com.projetoextensao.Projeto_Extenssao.controller;
 
 import com.projetoextensao.Projeto_Extenssao.domain.Category;
 import com.projetoextensao.Projeto_Extenssao.dto.CategoryRequestDTO;
+import com.projetoextensao.Projeto_Extenssao.dto.CategoryResponseDTO;
+import com.projetoextensao.Projeto_Extenssao.jwt.JwtFilter;
 import com.projetoextensao.Projeto_Extenssao.service.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/category")
@@ -21,40 +24,49 @@ public class CategoryController {
     private CategoryService categoryService;
 
     @PostMapping
-    public ResponseEntity<Category> insert(
+    public ResponseEntity<CategoryResponseDTO> create(
             @RequestBody @Valid CategoryRequestDTO dto,
-            UriComponentsBuilder builder
-    ) {
-        Category category = categoryService.create(dto);
+            UriComponentsBuilder builder) {
+
+        UUID clientId = JwtFilter.getCurrentClientId();
+
+        Category category = categoryService.create(dto, clientId);
 
         URI uri = builder.path("/category/{id}").buildAndExpand(category.getId()).toUri();
-        return ResponseEntity.created(uri).body(category);
+        return ResponseEntity.created(uri).body(new CategoryResponseDTO(category));
     }
 
     @GetMapping
-    public ResponseEntity<List<Category>> findAll() {
-        List<Category> categories = categoryService.findAll();
-
+    public ResponseEntity<List<CategoryResponseDTO>> findAllByClient() {
+        UUID clientId = JwtFilter.getCurrentClientId();
+        List<CategoryResponseDTO> categories = categoryService.findAllByClient(clientId)
+                .stream()
+                .map(CategoryResponseDTO::new)
+                .collect(Collectors.toList());
         return ResponseEntity.ok(categories);
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Category> findById(@PathVariable UUID id) {
+    public ResponseEntity<CategoryResponseDTO> findById(@PathVariable UUID id) {
         Category category = categoryService.findById(id);
-
-        return ResponseEntity.ok(category);
+        return ResponseEntity.ok(new CategoryResponseDTO(category));
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<Category> update(@PathVariable UUID id, @RequestBody @Valid CategoryRequestDTO dto) {
-        Category category = categoryService.update(id, dto);
-        return ResponseEntity.ok(category);
+    public ResponseEntity<CategoryResponseDTO> update(
+            @PathVariable UUID id,
+            @RequestBody @Valid CategoryRequestDTO dto) {
+
+        UUID clientId = JwtFilter.getCurrentClientId();
+
+        Category updated = categoryService.update(id, dto, clientId);
+
+        return ResponseEntity.ok(new CategoryResponseDTO(updated));
     }
 
     @DeleteMapping("{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         categoryService.delete(id);
-
         return ResponseEntity.noContent().build();
     }
 }

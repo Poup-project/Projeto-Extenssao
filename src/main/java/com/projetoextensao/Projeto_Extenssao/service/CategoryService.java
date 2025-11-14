@@ -1,11 +1,13 @@
 package com.projetoextensao.Projeto_Extenssao.service;
 
+import com.projetoextensao.Projeto_Extenssao.Exception.EmailAlreadyExistsException;
 import com.projetoextensao.Projeto_Extenssao.domain.Category;
 import com.projetoextensao.Projeto_Extenssao.domain.Client;
 import com.projetoextensao.Projeto_Extenssao.dto.CategoryRequestDTO;
 import com.projetoextensao.Projeto_Extenssao.repository.CategoryRepository;
 import com.projetoextensao.Projeto_Extenssao.repository.ClientRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,30 +32,32 @@ public class CategoryService {
                 .orElseThrow(() -> new EntityNotFoundException("Categoria com ID " + id + " não encontrada"));
     }
 
-    public Category create(Category category) {
-        return categoryRepository.save(category);
+    public List<Category> findAllByClient(UUID clientId) {
+        return categoryRepository.findByClientId(clientId);
     }
 
-    public Category create(CategoryRequestDTO dto) {
-        Client client = clientRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("Cliente com ID " + dto.getUserId() + " não encontrado"));
+    public Category create(@Valid CategoryRequestDTO dto, UUID clientId) {
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
 
-        Category category = new Category(dto);
+        Category category = new Category();
+        category.setTitle(dto.getTitle());
+        category.setColorHex(dto.getColorHex());
         category.setClient(client);
 
         return categoryRepository.save(category);
     }
 
-    public Category update(UUID id, CategoryRequestDTO dto) {
+    public Category update(UUID id, CategoryRequestDTO dto, UUID clientId) {
         Category existing = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Categoria com ID " + id + " não encontrada"));
 
+        if (!existing.getClient().getId().equals(clientId)) {
+            throw new RuntimeException("Você não tem permissão para editar esta categoria");
+        }
+
         existing.setTitle(dto.getTitle());
         existing.setColorHex(dto.getColorHex());
-
-        Client client = clientRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("Cliente com ID " + dto.getUserId() + " não encontrado"));
-        existing.setClient(client);
 
         return categoryRepository.save(existing);
     }

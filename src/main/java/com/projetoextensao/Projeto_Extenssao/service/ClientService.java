@@ -1,5 +1,6 @@
 package com.projetoextensao.Projeto_Extenssao.service;
 
+import com.projetoextensao.Projeto_Extenssao.Exception.EmailAlreadyExistsException;
 import com.projetoextensao.Projeto_Extenssao.domain.Client;
 import com.projetoextensao.Projeto_Extenssao.repository.ClientRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,6 +26,11 @@ public class ClientService {
     }
 
     public Client create(Client cliente) {
+
+        if (clientRepository.findByEmail(cliente.getEmail()) != null) {
+            throw new EmailAlreadyExistsException("Ja existe um cliente cadastrado com esse e-mail.");
+        }
+
         return clientRepository.save(cliente);
     }
 

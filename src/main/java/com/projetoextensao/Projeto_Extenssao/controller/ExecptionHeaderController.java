@@ -1,6 +1,8 @@
 package com.projetoextensao.Projeto_Extenssao.controller;
 
+import com.projetoextensao.Projeto_Extenssao.Exception.EmailAlreadyExistsException;
 import com.projetoextensao.Projeto_Extenssao.dto.ApiExceptionDTO;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -31,5 +33,17 @@ public class ExecptionHeaderController {
         ApiExceptionDTO apiException = new ApiExceptionDTO(errors);
 
         return ResponseEntity.badRequest().body(apiException);
+    }
+
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ResponseEntity<ApiExceptionDTO> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ApiExceptionDTO(ex.getMessage()));
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiExceptionDTO> handleGeneric(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ApiExceptionDTO(ex.getMessage()));
     }
 }

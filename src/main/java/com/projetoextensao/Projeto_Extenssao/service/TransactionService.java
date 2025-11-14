@@ -8,6 +8,7 @@ import com.projetoextensao.Projeto_Extenssao.repository.CategoryRepository;
 import com.projetoextensao.Projeto_Extenssao.repository.ClientRepository;
 import com.projetoextensao.Projeto_Extenssao.repository.TransactionRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -34,13 +35,16 @@ public class TransactionService {
                 .orElseThrow(() -> new EntityNotFoundException("Transação com ID " + id + " não encontrada"));
     }
 
-    public Transaction create(TransactionRequestDTO dto) {
+    public List<Transaction> findAllByClient(UUID clientId) {
+        return transactionRepository.findByClientId(clientId);
+    }
 
-        Client client = clientRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("Cliente com ID " + dto.getUserId() + " não encontrado"));
+    public Transaction create(@Valid TransactionRequestDTO dto, UUID clientId) {
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
 
         Category category = categoryRepository.findById(dto.getCategoryId())
-                .orElseThrow(() -> new EntityNotFoundException("Categoria com ID " + dto.getCategoryId() + " não encontrada"));
+                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
 
         Transaction transaction = new Transaction();
         transaction.setTitle(dto.getTitle());

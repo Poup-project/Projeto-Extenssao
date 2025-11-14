@@ -2,6 +2,9 @@ package com.projetoextensao.Projeto_Extenssao.controller;
 
 import com.projetoextensao.Projeto_Extenssao.domain.Client;
 import com.projetoextensao.Projeto_Extenssao.dto.ClientRequestDTO;
+import com.projetoextensao.Projeto_Extenssao.dto.ClientResponseDTO;
+import com.projetoextensao.Projeto_Extenssao.jwt.JwtFilter;
+import com.projetoextensao.Projeto_Extenssao.jwt.JwtUtil;
 import com.projetoextensao.Projeto_Extenssao.service.ClientService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,28 +25,31 @@ public class ClientController {
     @Autowired
     private ClientService clientService;
 
-    @PostMapping
-    public ResponseEntity<Client> insert(@RequestBody @Valid ClientRequestDTO clientRequestDTO,
-                                         UriComponentsBuilder builder) {
-        Client cliente = new Client(clientRequestDTO);
-        cliente = clientService.create(cliente);
+    @Autowired
+    private JwtUtil jwtUtil;
 
-        URI uri = builder.path("/clients/{id}").buildAndExpand(cliente.getId()).toUri();
-        return ResponseEntity.created(uri).body(cliente);
+    @PostMapping
+    public ResponseEntity<ClientResponseDTO> insert(@RequestBody @Valid ClientRequestDTO dto,
+                                                    UriComponentsBuilder builder) {
+        Client client = clientService.create(new Client(dto));
+        URI uri = builder.path("/client/{id}").buildAndExpand(client.getId()).toUri();
+        return ResponseEntity.created(uri).body(new ClientResponseDTO(client));
     }
 
     @GetMapping
-    public ResponseEntity<List<Client>> findAll() {
-        List<Client> clientes = clientService.findAll();
+    public ResponseEntity<List<ClientResponseDTO>> findAll() {
+        List<ClientResponseDTO> clientes = clientService.findAll()
+                .stream()
+                .map(ClientResponseDTO::new)
+                .toList();
 
         return ResponseEntity.ok(clientes);
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Client> findById(@PathVariable UUID id) {
-        Client cliente = clientService.findById(id);
-
-        return ResponseEntity.ok(cliente);
+    public ResponseEntity<ClientResponseDTO> findById(@PathVariable UUID id) {
+        Client client = clientService.findById(id);
+        return ResponseEntity.ok(new ClientResponseDTO(client));
     }
 
     @PutMapping("{id}")
@@ -67,22 +73,26 @@ public class ClientController {
         String email = credentials.get("email");
         String senha = credentials.get("password");
 
-        System.out.println("Tentando login com: " + email + " / " + senha);
-
         Client client = clientService.findByEmail(email);
 
-        if (client == null) {
-            System.out.println("Nenhum client encontrado para o email " + email);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Email ou senha inválidos"));
+        if (client == null || !client.getPassword().equals(senha)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou senha inválidos");
         }
 
-        if (!client.getPassword().equals(senha)) {
-            System.out.println("Senha incorreta para " + email);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Email ou senha inválidos"));
-        }
+        String token = jwtUtil.generateToken(client.getId());
 
-        return ResponseEntity.ok(client);
+        return ResponseEntity.ok(Map.of(
+                "token", token,
+                "client", new ClientResponseDTO(client)
+        ));
+    }
+
+    @GetMapping("/teste")
+    public ResponseEntity<?> getCurrentClient() {
+        UUID clientId = JwtFilter.getCurrentClientId();
+        if (clientId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido ou ausente");
+        }
+        return ResponseEntity.ok("Client ID atual: " + clientId);
     }
 }
