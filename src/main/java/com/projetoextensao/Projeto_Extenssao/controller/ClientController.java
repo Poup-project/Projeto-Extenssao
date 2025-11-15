@@ -73,10 +73,21 @@ public class ClientController {
         String email = credentials.get("email");
         String senha = credentials.get("password");
 
+        if (email == null || senha == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Email e password são obrigatórios");
+        }
+
         Client client = clientService.findByEmail(email);
 
-        if (client == null || !client.getPassword().equals(senha)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou senha inválidos");
+        if (client == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Email ou senha inválidos");
+        }
+
+        if (client.getPassword() == null || !client.getPassword().equals(senha)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Email ou senha inválidos");
         }
 
         String token = jwtUtil.generateToken(client.getId());
