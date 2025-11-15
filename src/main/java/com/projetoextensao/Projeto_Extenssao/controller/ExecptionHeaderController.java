@@ -1,18 +1,19 @@
 package com.projetoextensao.Projeto_Extenssao.controller;
 
-import com.projetoextensao.Projeto_Extenssao.Exception.EmailAlreadyExistsException;
 import com.projetoextensao.Projeto_Extenssao.dto.ApiExceptionDTO;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 import java.util.ArrayList;
 import java.util.List;
 
-@RestControllerAdvice(basePackages = "com.bank.bankingApplication.controller")
-public class ExecptionHeaderController {
+
+@RestControllerAdvice
+
+public class ExceptionHandlerController {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiExceptionDTO> handleException(Exception e) {
@@ -31,19 +32,12 @@ public class ExecptionHeaderController {
         }
 
         ApiExceptionDTO apiException = new ApiExceptionDTO(errors);
-
         return ResponseEntity.badRequest().body(apiException);
     }
 
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<ApiExceptionDTO> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ApiExceptionDTO(ex.getMessage()));
-    }
-
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiExceptionDTO> handleGeneric(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ApiExceptionDTO(ex.getMessage()));
+    public ResponseEntity<ApiExceptionDTO> handleRuntimeException(RuntimeException e) {
+        ApiExceptionDTO apiException = new ApiExceptionDTO(e.getMessage());
+        return ResponseEntity.badRequest().body(apiException);
     }
 }
