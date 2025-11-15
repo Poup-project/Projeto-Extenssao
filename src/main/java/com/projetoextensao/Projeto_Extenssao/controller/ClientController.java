@@ -1,16 +1,21 @@
 package com.projetoextensao.Projeto_Extenssao.controller;
 
 import com.projetoextensao.Projeto_Extenssao.domain.Client;
-import com.projetoextensao.Projeto_Extenssao.dto.*;
+import com.projetoextensao.Projeto_Extenssao.dto.ClientRequestDTO;
+import com.projetoextensao.Projeto_Extenssao.dto.ClientResponseDTO;
+import com.projetoextensao.Projeto_Extenssao.jwt.JwtFilter;
+import com.projetoextensao.Projeto_Extenssao.jwt.JwtUtil;
 import com.projetoextensao.Projeto_Extenssao.service.ClientService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -20,70 +25,46 @@ public class ClientController {
     @Autowired
     private ClientService clientService;
 
-    // ROTA DE LOGIN
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid LoginRequestDTO loginRequest) {
-        Client client = clientService.login(loginRequest.getEmail(), loginRequest.getPassword());
-        LoginResponseDTO response = new LoginResponseDTO(
-                client.getId(),
-                client.getName(),
-                client.getEmail()
-        );
-        return ResponseEntity.ok(response);
-    }
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PostMapping
-    public ResponseEntity<ClientResponseDTO> insert(
-            @RequestBody @Valid ClientRequestDTO clientRequestDTO,
-            UriComponentsBuilder builder) {
-        Client client = new Client(clientRequestDTO);
-        client = clientService.create(client);
-
-        ClientResponseDTO response = new ClientResponseDTO(
-                client.getId(),
-                client.getName(),
-                client.getEmail()
-        );
-
+    public ResponseEntity<ClientResponseDTO> insert(@RequestBody @Valid ClientRequestDTO dto,
+                                                    UriComponentsBuilder builder) {
+        Client client = clientService.create(new Client(dto));
         URI uri = builder.path("/client/{id}").buildAndExpand(client.getId()).toUri();
-        return ResponseEntity.created(uri).body(response);
+        return ResponseEntity.created(uri).body(new ClientResponseDTO(client));
     }
 
     @GetMapping
     public ResponseEntity<List<ClientResponseDTO>> findAll() {
-        List<ClientResponseDTO> clients = clientService.findAll();
-        return ResponseEntity.ok(clients);
+        List<ClientResponseDTO> clientes = clientService.findAll()
+                .stream()
+                .map(ClientResponseDTO::new)
+                .toList();
+
+        return ResponseEntity.ok(clientes);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("{id}")
     public ResponseEntity<ClientResponseDTO> findById(@PathVariable UUID id) {
         Client client = clientService.findById(id);
-        ClientResponseDTO response = new ClientResponseDTO(
-                client.getId(),
-                client.getName(),
-                client.getEmail()
-        );
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ClientResponseDTO(client));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ClientResponseDTO> update(
-            @PathVariable UUID id,
-            @RequestBody @Valid ClientRequestDTO clientRequestDTO) {
-        Client client = new Client(id, clientRequestDTO);
-        client = clientService.update(client);
+    @PutMapping("{id}")
+    public ResponseEntity<Client> update(@PathVariable UUID id,
+                                          @RequestBody @Valid ClientRequestDTO clientRequestDTO) {
+        Client cliente = new Client(id, clientRequestDTO);
+        cliente = clientService.update(cliente);
 
-        ClientResponseDTO response = new ClientResponseDTO(
-                client.getId(),
-                client.getName(),
-                client.getEmail()
-        );
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(cliente);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         clientService.delete(id);
+
         return ResponseEntity.noContent().build();
     }
 
@@ -115,14 +96,5 @@ public class ClientController {
                 "token", token,
                 "client", new ClientResponseDTO(client)
         ));
-    }
-
-    @GetMapping("/teste")
-    public ResponseEntity<?> getCurrentClient() {
-        UUID clientId = JwtFilter.getCurrentClientId();
-        if (clientId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido ou ausente");
-        }
-        return ResponseEntity.ok("Client ID atual: " + clientId);
     }
 }

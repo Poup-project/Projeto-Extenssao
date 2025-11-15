@@ -25,7 +25,6 @@ public class Client {
         this.password = clientRequestDTO.getPassword();
     }
 
-
     public Client(UUID id, ClientRequestDTO clientRequestDTO) {
         this.id = id;
         this.name = clientRequestDTO.getName();
