@@ -39,12 +39,12 @@ public class TransactionService {
         return transactionRepository.findByClientId(clientId);
     }
 
-    public Transaction create(@Valid TransactionRequestDTO dto, UUID clientId) {
-        Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+    public Transaction create(@Valid TransactionRequestDTO dto) {
 
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+
+        Client client = category.getClient();
 
         Transaction transaction = new Transaction();
         transaction.setTitle(dto.getTitle());

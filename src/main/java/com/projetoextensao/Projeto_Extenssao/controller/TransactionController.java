@@ -40,12 +40,16 @@ public class TransactionController {
     }
 
     @PostMapping
-    public ResponseEntity<TransactionResponseDTO> create(@RequestBody @Valid TransactionRequestDTO dto,
-                                                         UriComponentsBuilder builder) {
-        UUID clientId = JwtFilter.getCurrentClientId();
-        Transaction transaction = transactionService.create(dto, clientId);
+    public ResponseEntity<TransactionResponseDTO> create(
+            @RequestBody @Valid TransactionRequestDTO dto,
+            UriComponentsBuilder builder) {
 
-        URI uri = builder.path("/transaction/{id}").buildAndExpand(transaction.getId()).toUri();
+        Transaction transaction = transactionService.create(dto);
+
+        URI uri = builder.path("/transaction/{id}")
+                .buildAndExpand(transaction.getId())
+                .toUri();
+
         return ResponseEntity.created(uri).body(new TransactionResponseDTO(transaction));
     }
 
