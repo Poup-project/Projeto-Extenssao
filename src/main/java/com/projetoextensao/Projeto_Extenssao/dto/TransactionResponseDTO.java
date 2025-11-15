@@ -11,15 +11,12 @@ public class TransactionResponseDTO {
     private UUID id;
     private String title;
     private double price;
-    private CategoryBasicDTO category;
+    private UUID categoryId;
 
-    public TransactionResponseDTO(Transaction transaction) {
-        this.id = transaction.getId();
-        this.title = transaction.getTitle();
-        this.price = transaction.getPrice();
-
-        if (transaction.getCategory() != null) {
-            this.category = new CategoryBasicDTO(transaction.getCategory());
-        }
+    public TransactionResponseDTO(Transaction t) {
+        this.id = t.getId();
+        this.title = t.getTitle();
+        this.price = t.getPrice();
+        this.categoryId = t.getCategory().getId();
     }
 }

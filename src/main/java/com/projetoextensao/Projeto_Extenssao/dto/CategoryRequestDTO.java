@@ -19,5 +19,6 @@ public class CategoryRequestDTO {
     @NotBlank(message = "Cor é obrigatória!")
     private String colorHex;
 
-
+    @NotNull(message = "O Id do client é obrigatório!")
+    private UUID clientId;
 }

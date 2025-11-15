@@ -28,9 +28,7 @@ public class CategoryController {
             @RequestBody @Valid CategoryRequestDTO dto,
             UriComponentsBuilder builder) {
 
-        UUID clientId = JwtFilter.getCurrentClientId();
-
-        Category category = categoryService.create(dto, clientId);
+        Category category = categoryService.create(dto);
 
         URI uri = builder.path("/category/{id}").buildAndExpand(category.getId()).toUri();
         return ResponseEntity.created(uri).body(new CategoryResponseDTO(category));

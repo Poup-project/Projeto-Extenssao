@@ -36,8 +36,9 @@ public class CategoryService {
         return categoryRepository.findByClientId(clientId);
     }
 
-    public Category create(@Valid CategoryRequestDTO dto, UUID clientId) {
-        Client client = clientRepository.findById(clientId)
+    public Category create(@Valid CategoryRequestDTO dto) {
+
+        Client client = clientRepository.findById(dto.getClientId())
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
 
         Category category = new Category();

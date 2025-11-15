@@ -23,13 +23,13 @@ public class TransactionController {
     @Autowired
     private TransactionService transactionService;
 
-    @GetMapping
-    public ResponseEntity<List<TransactionResponseDTO>> findAllByClient() {
-        UUID clientId = JwtFilter.getCurrentClientId();
+    @GetMapping("/client/{clientId}")
+    public ResponseEntity<List<TransactionResponseDTO>> findAllByClientId(@PathVariable UUID clientId) {
         List<TransactionResponseDTO> transactions = transactionService.findAllByClient(clientId)
                 .stream()
                 .map(TransactionResponseDTO::new)
-                .collect(Collectors.toList());
+                .toList();
+
         return ResponseEntity.ok(transactions);
     }
 
